@@ -1,6 +1,7 @@
 import sys; sys.coinit_flags = 0  # noqa
 from loguru import logger
 import logging
+import signal
 
 
 class InterceptHandler(logging.Handler):
@@ -29,6 +30,10 @@ import AudioController
 mgr = AudioUtilities.GetAudioSessionManager()
 
 audio_controller = AudioController.AudioController()
+
+signal.signal(signal.SIGTERM, audio_controller.shutdown_callback)
+signal.signal(signal.SIGINT, audio_controller.shutdown_callback)
+
 callback = AudioController.SessionCreateCallback(audio_controller)
 
 mgr.RegisterSessionNotification(callback)
@@ -43,4 +48,3 @@ except KeyboardInterrupt:
 finally:
     mgr.UnregisterSessionNotification(callback)
     audio_controller.pre_shutdown()
-    logger.debug(audio_controller._sessions)

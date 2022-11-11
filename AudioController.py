@@ -1,5 +1,4 @@
 import queue
-import time
 
 import comtypes
 import psutil
@@ -47,6 +46,7 @@ class AudioController:
     """
 
     def __init__(self):
+        self.running = True
         self.per_session_callbacks_class = PerSessionCallbacks
         self._sessions: dict[int, AudioSession] = dict()  # Mapping pid to session
 
@@ -57,6 +57,11 @@ class AudioController:
         # work bad with all this logic in callback handler
 
         self.view = ServerSideView(self.outbound_q, self.inbound_q)
+
+    def shutdown_callback(self, sig, frame):
+        """Gets called by signal module as handler"""
+        logger.info(f'Shutting down by signal {sig}')
+        self.running = False
 
     def get_process(self, pid: int) -> psutil.Process:
         return self._sessions[pid].Process
@@ -86,9 +91,12 @@ class AudioController:
             new_session.register_notification(self.per_session_callbacks_class(new_session.ProcessId, self))
 
             # Notifying
-            self.outbound_q.put(Events.NewSession(new_session.ProcessId))
-            self.outbound_q.put(Events.SetName(new_session.ProcessId, get_app_name(new_session.Process)))
-            # TODO: Send also volume, mute, state
+            pid = new_session.ProcessId
+            self.outbound_q.put(Events.NewSession(pid))
+            self.outbound_q.put(Events.SetName(pid, get_app_name(new_session.Process)))
+            self.outbound_q.put(Events.VolumeChanged(pid, self.get_volume(pid)))
+            self.outbound_q.put(Events.MuteStateChanged(pid, self.is_muted(pid)))
+            # TODO: Send also state
 
         else:
             logger.debug("None's process session", new_session, new_session.ProcessId)
@@ -113,7 +121,7 @@ class AudioController:
 
     def _state_change_tick(self):
         try:
-            msg = self._state_change_q.get(timeout=3)
+            msg = self._state_change_q.get(timeout=0.1)
             logger.trace(f'New state message {msg}')
 
         except Empty:
@@ -180,6 +188,10 @@ class AudioController:
             except Exception:
                 logger.opt(exception=True).warning(f'Failed to unregister_notification() for pid {pid}')
 
+        # Notify ServerSideView to stop
+        self.view.running = False
+        self.view.join(1)
+
     def set_mute(self, pid: int, is_muted: bool):
         logger.trace(f'Set mute for {pid} {is_muted=}')
         self._sessions[pid].SimpleAudioVolume.SetMute(int(is_muted), None)
@@ -224,7 +236,7 @@ class AudioController:
         # self.perform_discover()
         logger.debug(f'Starting blocking')
         self.view.start()
-        while True:
+        while self.running:
             # time.sleep(1)
             self._state_change_tick()
             self._inbound_q_tick()
