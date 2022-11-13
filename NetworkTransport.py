@@ -18,6 +18,7 @@ class NetworkTransport(TransportABC):
         self._sock.listen(100)
         self._sock.setblocking(False)
         self._selector.register(self._sock, selectors.EVENT_READ, self._accept)
+        self._running = True
 
         self._connections: list[socket.socket] = list()
 
@@ -34,6 +35,9 @@ class NetworkTransport(TransportABC):
 
     def _accept(self, sock: socket.socket, mask: int):
         """Callback which get called when accepting new connection"""
+        if not self._running:
+            logger.debug(f'Net: New connection during shutdown {sock.getpeername()}, not accepting')
+            return
 
         conn, addr = sock.accept()
         logger.debug(f'Net: Accepted {conn.getpeername()}')
@@ -64,7 +68,7 @@ class NetworkTransport(TransportABC):
             self.view_rcv_callback(event)
 
         except Exception:
-            logger.opt(exception=True).warning(f"Couldn't parse message from client: {data}")
+            logger.opt(colors=False, exception=True).warning(f"Couldn't parse message from client: {data}")
 
     def tick(self):
         events = self._selector.select(timeout=0)
@@ -74,6 +78,7 @@ class NetworkTransport(TransportABC):
 
     def shutdown(self):
         logger.debug(f'Net: Shutting down')
+        self._running = False
         while len(self._connections) > 0:
             self._close_conn(self._connections[0])
 
