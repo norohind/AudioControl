@@ -1,0 +1,1 @@
+pyinstaller.exe -c --onefile --distpath ./ --name AudioControl.exe main.py
