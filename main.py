@@ -39,12 +39,9 @@ callback = AudioController.SessionCreateCallback(audio_controller)
 mgr.RegisterSessionNotification(callback)
 mgr.GetSessionEnumerator()
 
-try:
-    audio_controller.start_blocking()
+audio_controller.start_blocking()
 
-except KeyboardInterrupt:
-    pass
+mgr.UnregisterSessionNotification(callback)
+audio_controller.pre_shutdown()
 
-finally:
-    mgr.UnregisterSessionNotification(callback)
-    audio_controller.pre_shutdown()
+logger.trace(f'Shutdown completed')
