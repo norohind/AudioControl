@@ -197,7 +197,7 @@ class AudioController:
         self._sessions[pid].SimpleAudioVolume.SetMute(int(is_muted), None)
 
     def is_muted(self, pid: int) -> bool:
-        return self._sessions[pid].SimpleAudioVolume.GetMute()
+        return bool(self._sessions[pid].SimpleAudioVolume.GetMute())
 
     def toggle_mute(self, pid: int):
         logger.trace(f'Toggle mute for {pid}')
