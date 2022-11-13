@@ -69,23 +69,22 @@ class AudioController:
     def perform_discover(self):
         logger.trace('Performing discovering')
         for session in AudioUtilities.GetAllSessions():
-            logger.trace(f'Checking session {session.Process} {session.ProcessId}')
+            logger.trace(f'Checking session {session.Process}')
             if session.Process is not None:
-                if session.ProcessId not in self._sessions:
-                    logger.debug(f'Discovered session {session.Process}')
-                    self._sessions[session.ProcessId] = session
-                    self.on_session_created(session)
+                # if session.ProcessId not in self._sessions:
+                logger.debug(f'Discovered session {session.Process}')
+                self.on_session_created(session)
 
-                else:
-                    logger.trace(f'Already have session {session.Process} in _sessions')
+                # else:
+                #     logger.trace(f'Already have session {session.Process} in _sessions')
 
     def on_session_created(self, new_session: AudioSession):
         if new_session.Process is not None:
-            logger.debug(f'New session {new_session.Process.name()}:{new_session.ProcessId}')
+            logger.debug(f'New session {new_session.Process}')
 
             if new_session.ProcessId in self._sessions:
-                logger.warning(f'Already have session {new_session}')
-                return
+                logger.warning(f'Already have session {new_session.Process}, removing it first')
+                self._remove_session_by_pid(new_session.ProcessId)
 
             self._sessions[new_session.ProcessId] = new_session
             new_session.register_notification(self.per_session_callbacks_class(new_session.ProcessId, self))
@@ -191,6 +190,7 @@ class AudioController:
         # Notify ServerSideView to stop
         self.view.running = False
         self.view.join(1)
+        logger.trace(f'pre_shutdown completed')
 
     def set_mute(self, pid: int, is_muted: bool):
         logger.trace(f'Set mute for {pid} {is_muted=}')
