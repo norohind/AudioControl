@@ -250,6 +250,9 @@ class AudioController:
             elif isinstance(event, Events.MuteToggle):
                 self.toggle_mute(event.PID)
 
+            elif isinstance(event, Events.SetVolume):
+                self.set_volume(event.PID, event.volume)
+
     def start_blocking(self):
         # self.perform_discover()
         logger.debug(f'Starting blocking')

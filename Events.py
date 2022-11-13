@@ -35,6 +35,10 @@ From client to server:
 2. Mute toggle
     PID
 
+3. Set Volume
+    PID
+    new_volume
+
 3. New client
     *Literally nothing*
     # Set PID to any value
@@ -119,6 +123,11 @@ class VolumeIncrement(ClientToServerEvent):
 
 
 @dataclass
+class SetVolume(ClientToServerEvent):
+    volume: int
+
+
+@dataclass
 class MuteToggle(ClientToServerEvent):
     ...
 
@@ -132,8 +141,8 @@ T = TypeVar('T')
 
 
 @lru_cache
-def lookup_event(event_name: str) -> Event:
-    for cls in enumerate_subclasses(Event):
+def lookup_event(event_name: str, base: type[T] = ClientToServerEvent) -> T:
+    for cls in enumerate_subclasses(base):
         if cls.__name__ == event_name:
             return cls
 
