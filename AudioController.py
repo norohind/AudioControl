@@ -130,7 +130,7 @@ class AudioController:
 
     def _state_change_tick(self):
         try:
-            msg = self._state_change_q.get(timeout=0.1)
+            msg = self._state_change_q.get_nowait()
             logger.trace(f'New state message {msg}')
 
         except Empty:
@@ -231,7 +231,7 @@ class AudioController:
 
     def _inbound_q_tick(self):
         try:
-            event: Events.ClientToServerEvent = self.inbound_q.get_nowait()
+            event: Events.ClientToServerEvent = self.inbound_q.get(timeout=0.1)
 
         except queue.Empty:
             return
