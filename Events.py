@@ -54,7 +54,9 @@ Cases:
     Send `Session closed` event
 
 3. New client:
-    Send events as in `New Session` case 
+    Send events as in `New Session` case
+
+Volume and volume increment as int in range 0 to 100
 """
 
 
@@ -96,7 +98,7 @@ class StateChanged(ServerToClientEvent):
 
 @dataclass
 class VolumeChanged(ServerToClientEvent):
-    new_volume: float
+    new_volume: int
 
 
 @dataclass
@@ -113,7 +115,7 @@ class SetName(ServerToClientEvent):
 
 @dataclass
 class VolumeIncrement(ClientToServerEvent):
-    increment: float
+    increment: int
 
 
 @dataclass

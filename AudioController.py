@@ -20,9 +20,20 @@ class PerSessionCallbacks(AudioSessionEvents):
     def __init__(self, pid: int, audio_controller: 'AudioController'):
         self.pid = pid
         self.audio_controller = audio_controller
+        self._is_muted: bool | None = None
+        self._volume: int | None = None
 
     def on_simple_volume_changed(self, new_volume, new_mute, event_context):
-        self.audio_controller.on_volume_changed(self.pid, new_volume, new_mute, event_context)
+        new_mute = bool(new_mute)
+        new_volume = int(new_volume * 100)
+
+        if new_mute != self._is_muted:
+            self._is_muted = new_mute
+            self.audio_controller.on_mute_changed(self.pid, self._is_muted)
+
+        if new_volume != self._volume:
+            self._volume = new_volume
+            self.audio_controller.on_volume_changed(self.pid, self._volume, event_context)
 
     def on_state_changed(self, new_state, new_state_id):
         self.audio_controller.on_state_changed(self.pid, new_state, new_state_id)
@@ -100,14 +111,13 @@ class AudioController:
         else:
             logger.debug("None's process session", new_session, new_session.ProcessId)
 
-    def on_volume_changed(self, pid: int, new_volume: float, new_mute: int, event_context: 'comtypes.LP_GUID'):
-        logger.debug(f'Volume changed {self.get_process(pid).name()} {pid} new value: {new_volume}')
-
-        # Notifying
+    def on_volume_changed(self, pid: int, new_volume: int, event_context: 'comtypes.LP_GUID'):
+        logger.debug(f'Volume changed {self.get_process(pid)}: new value: {new_volume}')
         self.outbound_q.put(Events.VolumeChanged(pid, new_volume))
 
-        # Yes, this will produce useless MuteStateChanged
-        self.outbound_q.put(Events.MuteStateChanged(pid, bool(new_mute)))
+    def on_mute_changed(self, pid, new_mute: bool):
+        logger.debug(f'Mute changed {self.get_process(pid)}: new value: {new_mute}')
+        self.outbound_q.put(Events.MuteStateChanged(pid, new_mute))
 
     def on_state_changed(self, pid: int, new_state: str, new_state_id: int):
         """
@@ -204,16 +214,17 @@ class AudioController:
         is_muted = self.is_muted(pid)
         self.set_mute(pid, not is_muted)
 
-    def get_volume(self, pid: int) -> float:
+    def get_volume(self, pid: int) -> int:
         logger.trace(f'Get volume for {pid}')
-        return self._sessions[pid].SimpleAudioVolume.GetMasterVolume()
+        return int(self._sessions[pid].SimpleAudioVolume.GetMasterVolume() * 100)
 
-    def set_volume(self, pid: int, volume: float):
-        # only set volume in the range 0.0 to 1.0
-        volume = min(1.0, max(0.0, volume))
+    def set_volume(self, pid: int, volume: int):
+        # only set volume in the range 0 to 100
+        volume = min(100, max(0, volume))
+        volume = float(volume) / 100
         self._sessions[pid].SimpleAudioVolume.SetMasterVolume(volume, None)
 
-    def increment_volume(self, pid: int, increment: float):
+    def increment_volume(self, pid: int, increment: int):
         logger.trace(f'Increment volume for {pid}, {increment=}')
         volume = increment + self.get_volume(pid)
         self.set_volume(pid, volume)

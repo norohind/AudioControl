@@ -47,7 +47,7 @@ class ServerSideView(Thread):
 
         self.transport: TransportABC = NetworkTransport(self.rcv_callback)
 
-        self._state: dict[int, dict[str, int | float | str]] = dict()  # Holds current state of sessions received from AudioController
+        self._state: dict[int, dict[str, int | str]] = dict()  # Holds current state of sessions received from AudioController
         # PID : SessionState
 
     def rcv_callback(self, event: Events.ClientToServerEvent):
