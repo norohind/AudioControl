@@ -58,6 +58,11 @@ class NetworkTransport(TransportABC):
             self._close_conn(conn)
             return
 
+        for data_part in data.split(b'\n'):
+            if len(data_part) != 0:
+                self._handle_received_event(data_part, conn)
+
+    def _handle_received_event(self, data: bytes, conn: socket.socket):
         try:
             event_dict = json.loads(data)
             event_name = event_dict['event']
