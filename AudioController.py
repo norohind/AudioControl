@@ -103,8 +103,8 @@ class AudioController:
             # Notifying
             pid = new_session.ProcessId
             self.outbound_q.put(Events.NewSession(pid))
-            self.outbound_q.put(Events.SetName(pid, get_app_name(new_session.Process)))
             self.outbound_q.put(Events.VolumeChanged(pid, self.get_volume(pid)))
+            self.outbound_q.put(Events.SetName(pid, get_app_name(new_session.Process)))
             self.outbound_q.put(Events.MuteStateChanged(pid, self.is_muted(pid)))
             self.outbound_q.put(Events.StateChanged(pid, bool(self._sessions[pid].State)))
 
