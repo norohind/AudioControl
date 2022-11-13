@@ -106,7 +106,7 @@ class AudioController:
             self.outbound_q.put(Events.SetName(pid, get_app_name(new_session.Process)))
             self.outbound_q.put(Events.VolumeChanged(pid, self.get_volume(pid)))
             self.outbound_q.put(Events.MuteStateChanged(pid, self.is_muted(pid)))
-            self.outbound_q.put(Events.StateChanged(pid, self._sessions[pid].State))
+            self.outbound_q.put(Events.StateChanged(pid, bool(self._sessions[pid].State)))
 
         else:
             logger.debug("None's process session", new_session, new_session.ProcessId)
