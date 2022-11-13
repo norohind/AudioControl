@@ -53,14 +53,21 @@ class NetworkTransport(TransportABC):
         conn.close()
 
     def _on_socket_receive(self, conn: socket.socket, mask: int):
-        data = conn.recv(1000)
-        if not data:
-            self._close_conn(conn)
-            return
+        try:
+            data = conn.recv(1000)
 
-        for data_part in data.split(b'\n'):
-            if len(data_part) != 0:
-                self._handle_received_event(data_part, conn)
+        except ConnectionResetError:
+            logger.opt(exception=True).warning(f'Closing connection due to RST?')
+            self._close_conn(conn)
+
+        else:
+            if not data:
+                self._close_conn(conn)
+                return
+
+            for data_part in data.split(b'\n'):
+                if len(data_part) != 0:
+                    self._handle_received_event(data_part, conn)
 
     def _handle_received_event(self, data: bytes, conn: socket.socket):
         try:
