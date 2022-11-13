@@ -226,6 +226,13 @@ class AudioController:
             return
 
         else:
+            try:
+                self.get_process(event.PID)
+
+            except KeyError:
+                logger.warning(f'Event for unknown process {event}')
+                return
+
             if isinstance(event, Events.VolumeIncrement):
                 self.increment_volume(event.PID, event.increment)
 
