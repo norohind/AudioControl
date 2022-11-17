@@ -60,7 +60,7 @@ class ServerSideView(Thread):
     def run(self) -> None:
         while self.running:
             try:
-                msg: Events.Event = self.inbound_q.get(timeout=0.1)
+                msg: Events.Event = self.inbound_q.get_nowait()
 
             except queue.Empty:
                 pass

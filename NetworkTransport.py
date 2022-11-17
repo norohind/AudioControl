@@ -83,7 +83,7 @@ class NetworkTransport(TransportABC):
             logger.opt(colors=False, exception=True).warning(f"Couldn't parse message from client: {data}")
 
     def tick(self):
-        events = self._selector.select(timeout=0)
+        events = self._selector.select(timeout=0.1)
         for key, mask in events:
             callback = key.data
             callback(key.fileobj, mask)
