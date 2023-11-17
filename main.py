@@ -1,47 +1,52 @@
-import sys; sys.coinit_flags = 0  # noqa
+# import sys; sys.coinit_flags = 0  # noqa
 from loguru import logger
-import logging
-import signal
-
-
-class InterceptHandler(logging.Handler):
-    def emit(self, record):
-        # Get corresponding Loguru level if it exists
-        try:
-            level = logger.level(record.levelname).name
-        except ValueError:
-            level = record.levelno
-
-        # Find caller from where originated the logged message
-        frame, depth = logging.currentframe(), 2
-        while frame.f_code.co_filename == logging.__file__:
-            frame = frame.f_back
-            depth += 1
-
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
-
-
-logging.basicConfig(handlers=[InterceptHandler()])
+# import logging
+# import signal
+#
+#
+# class InterceptHandler(logging.Handler):
+#     def emit(self, record):
+#         # Get corresponding Loguru level if it exists
+#         try:
+#             level = logger.level(record.levelname).name
+#         except ValueError:
+#             level = record.levelno
+#
+#         # Find caller from where originated the logged message
+#         frame, depth = logging.currentframe(), 2
+#         while frame.f_code.co_filename == logging.__file__:
+#             frame = frame.f_back
+#             depth += 1
+#
+#         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+#
+#
+# logging.basicConfig(handlers=[InterceptHandler()], level=0)
 
 from pycaw.pycaw import AudioUtilities
 import AudioController
 
 
-mgr = AudioUtilities.GetAudioSessionManager()
+# mgr = AudioUtilities.GetAudioSessionManager()
+#
+# audio_controller = AudioController.AudioController()
+#
+# signal.signal(signal.SIGTERM, audio_controller.shutdown_callback)
+# signal.signal(signal.SIGINT, audio_controller.shutdown_callback)
+#
+# callback = AudioController.SessionCreateCallback(audio_controller)
+#
+# mgr.RegisterSessionNotification(callback)
+# mgr.GetSessionEnumerator()
+#
+# audio_controller.start_blocking()
+#
+# mgr.UnregisterSessionNotification(callback)
+# audio_controller.pre_shutdown()
+def main():
+    ...
 
-audio_controller = AudioController.AudioController()
 
-signal.signal(signal.SIGTERM, audio_controller.shutdown_callback)
-signal.signal(signal.SIGINT, audio_controller.shutdown_callback)
-
-callback = AudioController.SessionCreateCallback(audio_controller)
-
-mgr.RegisterSessionNotification(callback)
-mgr.GetSessionEnumerator()
-
-audio_controller.start_blocking()
-
-mgr.UnregisterSessionNotification(callback)
-audio_controller.pre_shutdown()
-
-logger.trace(f'Shutdown completed')
+if __name__ == '__main__':
+    main()
+    logger.trace(f'Shutdown completed')

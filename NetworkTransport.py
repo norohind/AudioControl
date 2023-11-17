@@ -14,7 +14,7 @@ class NetworkTransport(TransportABC):
         self.view_rcv_callback = rcv_callback
 
         self._sock = socket.socket()
-        self._sock.bind(('localhost', 54683))
+        self._sock.bind(('0.0.0.0', 54683))
         self._sock.listen(100)
         self._sock.setblocking(False)
         self._selector.register(self._sock, selectors.EVENT_READ, self._accept)

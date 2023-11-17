@@ -41,6 +41,12 @@ class PerSessionCallbacks(AudioSessionEvents):
     def on_session_disconnected(self, disconnect_reason, disconnect_reason_id):
         self.audio_controller.on_session_disconnected(self.pid, disconnect_reason, disconnect_reason_id)
 
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__} - {id(self)} - {getattr(self, "pid", None)}'
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class SessionCreateCallback(AudioSessionNotification):
     def __init__(self, audio_controller: 'AudioController'):
@@ -254,7 +260,7 @@ class AudioController:
                 self.set_volume(event.PID, event.volume)
 
     def start_blocking(self):
-        # self.perform_discover()
+        self.perform_discover()
         logger.debug(f'Starting blocking')
         self.view.start()
         while self.running:
